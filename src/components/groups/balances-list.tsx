@@ -57,7 +57,7 @@ export function BalancesList({
                         <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                         <XAxis type="number" hide />
                         <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
-                        <Tooltip formatter={(val: number) => formatCurrency(val)} />
+                        <Tooltip formatter={(value: any) => formatCurrency(value)} />
                         <Bar dataKey="balance" fill="#8884d8">
                             {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.balance >= 0 ? '#22c55e' : '#ef4444'} />

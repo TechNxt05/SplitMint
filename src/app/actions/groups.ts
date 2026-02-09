@@ -72,7 +72,7 @@ export async function getGroups() {
         });
 
         // Calculate total spend for each group
-        return groups.map((group) => ({
+        return groups.map((group: any) => ({
             ...group,
             totalSpent: group.expenses.reduce((sum: number, expense: { amount: number }) => sum + expense.amount, 0)
         }));
@@ -109,6 +109,9 @@ export async function getGroupById(groupId: string) {
                     orderBy: {
                         date: 'desc'
                     }
+                },
+                _count: {
+                    select: { participants: true }
                 }
             },
         });
