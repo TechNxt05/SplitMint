@@ -9,12 +9,19 @@ export async function getAuthenticatedUser() {
     }
 
     // Check if user exists in our DB
-    const user = await prisma.user.findUnique({
-        where: { clerkId: userId },
-    });
+    try {
+        const user = await prisma.user.findUnique({
+            where: { clerkId: userId },
+        });
 
-    if (user) {
-        return user;
+        if (user) {
+            return user;
+        }
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        // If DB is down or unreachable, returning null prevents a 500 error,
+        // though it means the app won't function fully.
+        return null;
     }
 
     // If not, sync from Clerk
