@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/providers";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/navbar";
+import { FinanceCopilot } from "@/components/chatbot/finance-copilot";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SplitMint",
-  description: "Smart expense splitting for groups.",
+  title: "SplitMint - Apna Finance",
+  description: "Smart expense splitting and personal finance tracking.",
 };
 
 export default function RootLayout({
@@ -18,16 +19,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <Providers>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={inter.className}>
           <Navbar />
           <main className="min-h-screen bg-gray-50">
             {children}
           </main>
+          <FinanceCopilot />
           <Toaster />
-        </Providers>
-      </body>
-    </html>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

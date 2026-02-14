@@ -1,11 +1,10 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Wallet } from "lucide-react";
 
 export default async function Home() {
-  const session = await getServerSession(authOptions);
+  const { userId } = await auth();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -22,7 +21,7 @@ export default async function Home() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
-          {session ? (
+          {userId ? (
             <Link href="/dashboard">
               <Button size="lg" className="h-12 px-8 text-lg gap-2">
                 Go to Dashboard <ArrowRight className="h-4 w-4" />

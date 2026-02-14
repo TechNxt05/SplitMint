@@ -1,15 +1,21 @@
-import { withAuth } from "next-auth/middleware";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-export default withAuth({
-    pages: {
-        signIn: "/login",
-    },
+const isProtectedRoute = createRouteMatcher([
+    '/dashboard(.*)',
+    '/groups(.*)',
+    '/apna-finance(.*)',
+    '/api/upload(.*)', // Protect OCR upload
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+    try {
+        const { userId, redirectToSignIn } = await auth();
+        if (!userId && isProtectedRoute(req)) return redirectToSignIn();
+    } catch (e) {
+        // Ignore auth errors during build/static generation
+    }
 });
 
 export const config = {
-    matcher: [
-        "/dashboard/:path*",
-        "/groups/:path*",
-        "/settings/:path*",
-    ],
+    matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
 };

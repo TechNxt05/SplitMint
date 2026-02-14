@@ -1,7 +1,6 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthenticatedUser } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
@@ -23,9 +22,9 @@ const createExpenseSchema = z.object({
 });
 
 export async function createExpense(formData: z.infer<typeof createExpenseSchema>) {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser();
 
-    if (!session?.user?.id) {
+    if (!user) {
         return { error: "Not authenticated" };
     }
 
@@ -52,7 +51,7 @@ export async function createExpense(formData: z.infer<typeof createExpenseSchema
             include: { participants: true },
         });
 
-        if (!group || group.ownerId !== session.user.id) {
+        if (!group || group.ownerId !== user.id) {
             return { error: "Not authorized" };
         }
 
@@ -140,9 +139,9 @@ export async function createExpense(formData: z.infer<typeof createExpenseSchema
 }
 
 export async function deleteExpense(expenseId: string, groupId: string) {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser();
 
-    if (!session?.user?.id) {
+    if (!user) {
         return { error: "Not authenticated" };
     }
 
@@ -151,7 +150,7 @@ export async function deleteExpense(expenseId: string, groupId: string) {
             where: { id: groupId }
         });
 
-        if (!group || group.ownerId !== session.user.id) {
+        if (!group || group.ownerId !== user.id) {
             return { error: "Not authorized" };
         }
 

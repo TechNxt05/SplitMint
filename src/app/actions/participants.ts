@@ -1,7 +1,6 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthenticatedUser } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
@@ -12,9 +11,9 @@ const addParticipantSchema = z.object({
 });
 
 export async function addParticipant(formData: z.infer<typeof addParticipantSchema>) {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser();
 
-    if (!session?.user?.id) {
+    if (!user) {
         return { error: "Not authenticated" };
     }
 
@@ -32,7 +31,7 @@ export async function addParticipant(formData: z.infer<typeof addParticipantSche
             where: { id: groupId },
         });
 
-        if (!group || group.ownerId !== session.user.id) {
+        if (!group || group.ownerId !== user.id) {
             return { error: "Not authorized" };
         }
 
@@ -52,9 +51,9 @@ export async function addParticipant(formData: z.infer<typeof addParticipantSche
 }
 
 export async function removeParticipant(participantId: string, groupId: string) {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser();
 
-    if (!session?.user?.id) {
+    if (!user) {
         return { error: "Not authenticated" };
     }
 
@@ -65,7 +64,7 @@ export async function removeParticipant(participantId: string, groupId: string) 
             include: { group: true }
         });
 
-        if (!participant || participant.group.ownerId !== session.user.id) {
+        if (!participant || participant.group.ownerId !== user.id) {
             return { error: "Not authorized" };
         }
 

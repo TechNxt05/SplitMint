@@ -8,13 +8,14 @@ generator client {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String            @id @default(cuid())
+  clerkId       String            @unique // Link to Clerk
+  email         String            @unique
   name          String?
-  email         String    @unique
-  passwordHash  String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  groups        Group[]   @relation("GroupOwner")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  groups        Group[]           @relation("GroupOwner")
+  expenses      PersonalExpense[] // Personal expenses
 }
 
 model Group {
@@ -29,14 +30,12 @@ model Group {
 }
 
 model Participant {
-  id            String         @id @default(cuid())
-  name          String
-  // Optional: functionality to link a participant to a real user account in the future
-  // userId        String?
-  groupId       String
-  group         Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  splits        ExpenseSplit[]
-  expensesPaid  Expense[]
+  id           String         @id @default(cuid())
+  name         String
+  groupId      String
+  group        Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  splits       ExpenseSplit[]
+  expensesPaid Expense[]
 }
 
 model Expense {
@@ -63,8 +62,30 @@ model ExpenseSplit {
   shareAmount   Float
 }
 
+model PersonalExpense {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Float
+  category    Category
+  description String
+  date        DateTime
+  paymentMode String   @default("UPI") // UPI, Cash, Card
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 enum SplitMode {
   EQUAL
   EXACT
   PERCENT
+}
+
+enum Category {
+  Food
+  Travel
+  Rent
+  Shopping
+  Bills
+  Misc
 }

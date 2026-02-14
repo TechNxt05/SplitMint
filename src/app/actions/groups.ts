@@ -1,7 +1,6 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthenticatedUser } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
@@ -11,9 +10,9 @@ const createGroupSchema = z.object({
 });
 
 export async function createGroup(formData: z.infer<typeof createGroupSchema>) {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser();
 
-    if (!session?.user?.id) {
+    if (!user) {
         return { error: "Not authenticated" };
     }
 
@@ -27,10 +26,10 @@ export async function createGroup(formData: z.infer<typeof createGroupSchema>) {
         const group = await prisma.group.create({
             data: {
                 name: validatedFields.data.name,
-                ownerId: session.user.id,
+                ownerId: user.id,
                 participants: {
                     create: {
-                        name: session.user.name || "Owner", // Add creator as first participant
+                        name: user.name || "Owner", // Add creator as first participant
                     },
                 },
             },
@@ -45,16 +44,16 @@ export async function createGroup(formData: z.infer<typeof createGroupSchema>) {
 }
 
 export async function getGroups() {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser();
 
-    if (!session?.user?.id) {
+    if (!user) {
         return [];
     }
 
     try {
         const groups = await prisma.group.findMany({
             where: {
-                ownerId: session.user.id,
+                ownerId: user.id,
             },
             include: {
                 _count: {
@@ -84,9 +83,9 @@ export async function getGroups() {
 }
 
 export async function getGroupById(groupId: string) {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser();
 
-    if (!session?.user?.id) {
+    if (!user) {
         return null;
     }
 
@@ -116,7 +115,7 @@ export async function getGroupById(groupId: string) {
             },
         });
 
-        if (!group || group.ownerId !== session.user.id) {
+        if (!group || group.ownerId !== user.id) {
             return null;
         }
 
@@ -128,9 +127,9 @@ export async function getGroupById(groupId: string) {
 }
 
 export async function deleteGroup(groupId: string) {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser();
 
-    if (!session?.user?.id) {
+    if (!user) {
         return { error: "Not authenticated" };
     }
 
@@ -140,7 +139,7 @@ export async function deleteGroup(groupId: string) {
             where: { id: groupId },
         });
 
-        if (!group || group.ownerId !== session.user.id) {
+        if (!group || group.ownerId !== user.id) {
             return { error: "Not authorized" };
         }
 
